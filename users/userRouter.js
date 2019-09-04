@@ -1,5 +1,6 @@
 const express = require('express');
 const User = require('./userDb');
+const Post = require('../posts/postDb')
 
 const router = express.Router();
 
@@ -8,28 +9,28 @@ router.use(express.json());
 
 /************************* POST **************************/
 router.post('/', (req, res) => {
-    const {name} = req.body;
-    
-    if(!name) {
-        res.status(400).json({errorMessage: "Please provide a name for the user"})
+    const { name } = req.body;
+
+    if (!name) {
+        res.status(400).json({ errorMessage: "Please provide a name for the user" })
     } else {
         User.insert(req.body)
             .then(user => {
                 res.status(201).json(user)
             })
             .catch(err => {
-                res.status(500).json({error: "There was an error while saving the user to the database"})
+                res.status(500).json({ error: "There was an error while saving the user to the database" })
             })
     }
 });
 
 router.post('/:id/posts', (req, res) => {
-    const {text} = req.body;
+    const { text } = req.body;
 
-    if(!text) {
-        res.status(404).json({ message: "The post with the specified ID does not exist." })
+    if (!text) {
+        res.status(404).json({ message: "Please provide the text for the post." })
     } else {
-        User.insert(req.body)
+        Post.insert(req.body)
             .then(id => {
                 res.status(201).json(id)
             })
@@ -55,38 +56,39 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
     const userId = req.params.id;
 
-    User.getById(userId)
-        .then(id => {
-            if(id) {
+    if (userId) {
+        res.status(404).json({ message: "The user with the specified ID does not exist." })
+    } else {
+        User.getById(userId)
+            .then(id => {
                 res.status(200).json(id)
-            } else {
-                res.status(404).json({ message: "The user with the specified ID does not exist." })
-            }
-        })
-        .catch(() => {
-            res.status(500).json({
-                error: "The user information with the specified ID could not be retrieved."
+            })
+            .catch(() => {
+                res.status(500).json({
+                    error: "The user information with the specified ID could not be retrieved."
+                });
             });
-        });
+    }
 });
 
 router.get('/:id/posts', (req, res) => {
     const postId = req.params.id;
-    console.log(req.body)
 
-    User.getUserPosts(postId)
-        .then(post =>{
-            if(post) {
+    if (!postId) {
+        res.status(404).json({ message: "The post with the specified ID does not exist." })
+    } else {
+        User.getUserPosts(postId)
+            .then(post => {
                 res.status(200).json(post)
-            } else {
-                res.status(404).json({  message: "The post with the specified ID does not exist." })
-            }
-        })
-        .catch(() => {
-            res.status(500).json({
-                error: "The users post information with the specified ID could not be retrieved."
+
+            })
+            .catch(() => {
+                res.status(500).json({
+                    error: "The users post information with the specified ID could not be retrieved."
+                });
             });
-        });
+    }
+
 });
 
 /************************* Delete **************************/
@@ -102,12 +104,30 @@ router.delete('/:id', (req, res) => {
             };
         })
         .catch(err => {
-            res.status(500).json({error: "The user information could not be modified"})
+            res.status(500).json({ error: "The user information could not be modified" })
         });
 });
 
 router.put('/:id', (req, res) => {
+    const { name } = req.body;
 
+    if(!name) {
+        res.status(400).json({ errorMessage: "Please provide name for the user." })
+    } else {
+        const userId = req.params.id
+
+        User.update(userId, req.body)
+        .then(user => {
+            if(user) {
+                res.status(200).json(user)
+            } else {
+                res.status(404).json({ message: "The user with the specified ID does not exist." })
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ error: "The user information could not be modified." })
+        })
+    }
 });
 
 //custom middleware
