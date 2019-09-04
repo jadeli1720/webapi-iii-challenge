@@ -5,12 +5,40 @@ const router = express.Router();
 
 router.use(express.json());
 
-router.post('/', (req, res) => {
 
+/************************* POST **************************/
+router.post('/', (req, res) => {
+    const {name} = req.body;
+    
+    if(!name) {
+        res.status(400).json({errorMessage: "Please provide a name for the user"})
+    } else {
+        User.insert(req.body)
+            .then(user => {
+                res.status(201).json(user)
+            })
+            .catch(err => {
+                res.status(500).json({error: "There was an error while saving the user to the database"})
+            })
+    }
 });
 
 router.post('/:id/posts', (req, res) => {
+    const {text} = req.body;
 
+    if(!text) {
+        res.status(404).json({ message: "The post with the specified ID does not exist." })
+    } else {
+        User.insert(req.body)
+            .then(id => {
+                res.status(201).json(id)
+            })
+            .catch(() => {
+                res.status(500).json(
+                    { error: "There was an error while saving the post to the database" }
+                )
+            })
+    }
 });
 
 /************************* GET **************************/
