@@ -13,6 +13,7 @@ router.post('/:id/posts', (req, res) => {
 
 });
 
+/************************* GET **************************/
 router.get('/', (req, res) => {
     User.get()
         .then(user => {
@@ -60,8 +61,21 @@ router.get('/:id/posts', (req, res) => {
         });
 });
 
+/************************* Delete **************************/
 router.delete('/:id', (req, res) => {
+    const userId = req.params.id;
 
+    User.remove(userId)
+        .then(id => {
+            if (id) {
+                res.status(200).json(id)
+            } else {
+                req.status(404).json({ message: "The user with the specified ID does not exist." })
+            };
+        })
+        .catch(err => {
+            res.status(500).json({error: "The user information could not be modified"})
+        });
 });
 
 router.put('/:id', (req, res) => {
