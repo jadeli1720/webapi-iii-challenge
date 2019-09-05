@@ -91,17 +91,18 @@ router.get('/:id/posts', validateUserId, (req, res) => {
 router.delete('/:id', validateUserId, (req, res) => {
     const userId = req.params.id;
 
-    User.remove(userId)
-        .then(id => {
-            if (id) {
+    if (!userId) {
+        req.status(404).json({ message: "The user with the specified ID does not exist." })
+    } else {
+        User.remove(userId)
+            .then(id => {
                 res.status(200).json(id)
-            } else {
-                req.status(404).json({ message: "The user with the specified ID does not exist." })
-            };
-        })
-        .catch(err => {
-            res.status(500).json({ error: "The user information could not be modified" })
-        });
+
+            })
+            .catch(err => {
+                res.status(500).json({ error: "The user information could not be modified" })
+            });
+    }
 });
 
 router.put('/:id', validateUserId, (req, res) => {
@@ -142,7 +143,7 @@ function validateUserId(req, res, next) {
         .catch(() => {
             res.status(500).json({ errorMessage: "Could not validate user with the specified id" })
         })
-        next()
+    next()
 };
 
 //Create new user endpoints
@@ -175,7 +176,7 @@ function validatePost(req, res, next) {
         return true;
     }
 
-    if(isEmpty(req.body)) {
+    if (isEmpty(req.body)) {
         res.status(400).json({ message: "missing user data" })
     } else if (!req.body.text) {
         res.status(400).json({ message: "missing required text field" })
