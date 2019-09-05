@@ -16,7 +16,7 @@ function logger(req, res, next) {
     next();
 };
 
-server.use(logger)
+server.use(logger);
 
 server.use('/users', userRouter);
 server.use('/posts', postRouter);
