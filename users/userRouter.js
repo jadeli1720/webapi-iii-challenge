@@ -8,7 +8,7 @@ router.use(express.json());
 
 
 /************************* POST **************************/
-router.post('/', (req, res) => {
+router.post('/', validateUser, (req, res) => {
     const { name } = req.body;
 
     if (!name) {
@@ -43,7 +43,7 @@ router.post('/:id/posts', (req, res) => {
 });
 
 /************************* GET **************************/
-router.get('/', (req, res) => {
+router.get('/',  (req, res) => {
     User.get()
         .then(user => {
             res.status(200).json(user)
@@ -53,22 +53,18 @@ router.get('/', (req, res) => {
         })
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', validateUserId, (req, res) => {
     const userId = req.params.id;
 
-    if (userId) {
-        res.status(404).json({ message: "The user with the specified ID does not exist." })
-    } else {
-        User.getById(userId)
-            .then(id => {
-                res.status(200).json(id)
-            })
-            .catch(() => {
-                res.status(500).json({
-                    error: "The user information with the specified ID could not be retrieved."
-                });
+    User.getById(userId)
+        .then(id => {
+            res.status(200).json(id)
+        })
+        .catch(() => {
+            res.status(500).json({
+                error: "The user information with the specified ID could not be retrieved."
             });
-    }
+        });
 });
 
 router.get('/:id/posts', (req, res) => {
@@ -92,7 +88,7 @@ router.get('/:id/posts', (req, res) => {
 });
 
 /************************* Delete **************************/
-router.delete('/:id', (req, res) => {
+router.delete('/:id', validateUserId, (req, res) => {
     const userId = req.params.id;
 
     User.remove(userId)
@@ -111,33 +107,61 @@ router.delete('/:id', (req, res) => {
 router.put('/:id', (req, res) => {
     const { name } = req.body;
 
-    if(!name) {
+    if (!name) {
         res.status(400).json({ errorMessage: "Please provide name for the user." })
     } else {
         const userId = req.params.id
 
         User.update(userId, req.body)
-        .then(user => {
-            if(user) {
-                res.status(200).json(user)
-            } else {
-                res.status(404).json({ message: "The user with the specified ID does not exist." })
-            }
-        })
-        .catch(err => {
-            res.status(500).json({ error: "The user information could not be modified." })
-        })
+            .then(user => {
+                if (user) {
+                    res.status(200).json(user)
+                } else {
+                    res.status(404).json({ message: "The user with the specified ID does not exist." })
+                }
+            })
+            .catch(err => {
+                res.status(500).json({ error: "The user information could not be modified." })
+            })
     }
 });
 
 //custom middleware
 
 function validateUserId(req, res, next) {
-
+    const userId = req.params.id
+    User.getById(userId)
+        .then(user => {
+            console.log(user)
+            if (user) {
+                req.user = user;
+                next()
+            } else {
+                res.status(400).json({ message: "invalid user id" })
+            }
+        })
+        .catch(() => {
+            res.status(500).json({ errorMessage: "Could not validate user with the specified id" })
+        })
 };
 
 function validateUser(req, res, next) {
+    console.log(req.body)//returns empty object. req.body = {}
+    function isEmpty(obj) {
+        for(var key in obj) {
+            if(obj.hasOwnProperty(key))//returns a boolean indicating whether the object has the specified property as its own property 
+                return false;
+        }
+        return true;
+    }
+    
+    if(isEmpty(req.body)) {
+        res.status(400).json({ message: "missing user data" })
+    } else if (!req.body.name){
+        res.status(400).json({ message: "missing required name field"  })
+    }
 
+    next()
 };
 
 function validatePost(req, res, next) {
