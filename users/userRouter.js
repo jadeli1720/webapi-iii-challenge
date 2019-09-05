@@ -67,7 +67,7 @@ router.get('/:id', validateUserId, (req, res) => {
         });
 });
 
-router.get('/:id/posts', (req, res) => {
+router.get('/:id/posts', validateUserId, (req, res) => {
     const postId = req.params.id;
 
     if (!postId) {
@@ -104,7 +104,7 @@ router.delete('/:id', validateUserId, (req, res) => {
         });
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', validateUserId, (req, res) => {
     const { name } = req.body;
 
     if (!name) {
