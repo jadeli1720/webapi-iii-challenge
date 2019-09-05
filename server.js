@@ -2,6 +2,8 @@ const express = require('express');
 const userRouter = require('./users/userRouter');
 const postRouter = require('./posts/postRouter');
 
+console.log('environment', process.env.NODE_ENV);
+
 const server = express();
 
 server.get('/', (req, res) => {
