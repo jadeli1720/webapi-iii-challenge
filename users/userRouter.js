@@ -24,7 +24,7 @@ router.post('/', validateUser, (req, res) => {
     }
 });
 
-router.post('/:id/posts', (req, res) => {
+router.post('/:id/posts', validatePost, (req, res) => {
     const { text } = req.body;
 
     if (!text) {
@@ -43,7 +43,7 @@ router.post('/:id/posts', (req, res) => {
 });
 
 /************************* GET **************************/
-router.get('/',  (req, res) => {
+router.get('/', (req, res) => {
     User.get()
         .then(user => {
             res.status(200).json(user)
@@ -111,7 +111,6 @@ router.put('/:id', (req, res) => {
         res.status(400).json({ errorMessage: "Please provide name for the user." })
     } else {
         const userId = req.params.id
-
         User.update(userId, req.body)
             .then(user => {
                 if (user) {
@@ -128,6 +127,7 @@ router.put('/:id', (req, res) => {
 
 //custom middleware
 
+//validates user id on all endpoints using id parameters
 function validateUserId(req, res, next) {
     const userId = req.params.id
     User.getById(userId)
@@ -135,7 +135,6 @@ function validateUserId(req, res, next) {
             console.log(user)
             if (user) {
                 req.user = user;
-                next()
             } else {
                 res.status(400).json({ message: "invalid user id" })
             }
@@ -143,29 +142,45 @@ function validateUserId(req, res, next) {
         .catch(() => {
             res.status(500).json({ errorMessage: "Could not validate user with the specified id" })
         })
+        next()
 };
 
+//Create new user endpoints
 function validateUser(req, res, next) {
     console.log(req.body)//returns empty object. req.body = {}
     function isEmpty(obj) {
-        for(var key in obj) {
-            if(obj.hasOwnProperty(key))//returns a boolean indicating whether the object has the specified property as its own property 
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key))//returns a boolean indicating whether the object has the specified property as its own property 
                 return false;
         }
         return true;
     }
-    
-    if(isEmpty(req.body)) {
-        res.status(400).json({ message: "missing user data" })
-    } else if (!req.body.name){
-        res.status(400).json({ message: "missing required name field"  })
-    }
 
+    if (isEmpty(req.body)) {
+        res.status(400).json({ message: "missing user data" })
+    } else if (!req.body.name) {
+        res.status(400).json({ message: "missing required name field" })
+    }
     next()
 };
 
+//creating a new post
 function validatePost(req, res, next) {
+    //req.body = {}
+    function isEmpty(obj) {
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key))
+                return false;
+        }
+        return true;
+    }
 
+    if(isEmpty(req.body)) {
+        res.status(400).json({ message: "missing user data" })
+    } else if (!req.body.text) {
+        res.status(400).json({ message: "missing required text field" })
+    }
+    next()
 };
 
 module.exports = router;
